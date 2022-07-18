@@ -1,0 +1,17 @@
+name: Build Release
+on: push
+
+jobs:
+  build:
+
+    runs-on: windows-2019
+
+    steps:
+      - name: Checkout Binaries
+        uses: actions/checkout@v2
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+            toolchain: stable
+      - name: Build Binaries
+        run: cargo build
