@@ -12,8 +12,10 @@ jobs:
       - name: Install Rust
         uses: actions-rs/toolchain@v1
         with:
-            toolchain: stable
-      - name: Run Clippy
-        run: cargo clippy -- -Dwarnings 
-      - name: Run Tests
-        run: cargo test
+            toolchain: nightly
+      - name: Install Miri
+        run: | 
+            rustup +nightly component add miri
+            cargo miri setup
+      - name: Test with Miri
+        run: cargo miri test

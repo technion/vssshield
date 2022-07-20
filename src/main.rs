@@ -21,9 +21,9 @@ fn run_if_safe(args: &[String]) -> Result<(), &str> {
     // Caller may or may not have used full pathnames or included extension
     let filename = Path::new(&args[1]);
     match filename.file_name().unwrap().to_str() {
-        Some("vssadmin.exe" | "vssadmin") => process_vssadmin(&args),
-        Some("wmic.exe" | "wmic") => process_wmic(&args),
-        Some("diskshadow.exe" | "diskshadow") => process_diskshadow(&args),
+        Some("vssadmin.exe" | "vssadmin") => process_vssadmin(args),
+        Some("wmic.exe" | "wmic") => process_wmic(args),
+        Some("diskshadow.exe" | "diskshadow") => process_diskshadow(args),
         _ => return Err("Not a supported executable"),
     };
 
