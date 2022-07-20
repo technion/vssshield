@@ -14,6 +14,8 @@ jobs:
         with:
             toolchain: stable
       - name: Run Clippy
-        run: cargo clippy -- -Dwarnings 
+        run: cargo clippy -- -Dwarnings
+      - name: Rust fmt
+        run: cargo fmt --check
       - name: Run Tests
         run: cargo test

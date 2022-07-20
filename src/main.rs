@@ -184,10 +184,7 @@ mod tests {
 
     #[test]
     fn invalid_call() {
-        let args = vec![
-            "vssshield.exe".to_string(),
-            "notepad.exe".to_string()
-        ];
+        let args = vec!["vssshield.exe".to_string(), "notepad.exe".to_string()];
         assert!(run_if_safe(&args).is_err());
     }
 

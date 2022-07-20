@@ -15,3 +15,7 @@ It needs to be said that this style of application serves as a mitigation, and s
 The unusual nature of this application means that some amount of panics are acceptable and potentially even more desirable than alternatives in the case of an error. Some unsafe was unavoidable, but this has been modelled on code direct from Rust's stdlib test suite.
 
 Code is designed to compile against Rust Stable with no clippy errors.
+
+## Installation
+
+Once a stable release is built, an installer will be written. For now, advise is to create a registry entry to launch the application using IEFO.
