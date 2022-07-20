@@ -5,7 +5,6 @@ use std::os::windows::process::CommandExt;
 use std::path::Path;
 use std::process::Command;
 
-
 fn main() {
     println!("Loading vssshield");
     let args: Vec<String> = env::args().collect();
@@ -24,8 +23,8 @@ fn run_if_safe(args: &[String]) -> Result<(), &str> {
     match filename.file_name().unwrap().to_str() {
         Some("vssadmin.exe" | "vssadmin") => process_vssadmin(&args),
         Some("wmic.exe" | "wmic") => process_wmic(&args),
-        Some("diskshadow.exe") => { return Err("Failed hard")},
-        _ => panic!("No acceptable filename used"),
+        Some("diskshadow.exe" | "diskshadow") => process_diskshadow(&args),
+        _ => return Err("Not a supported executable"),
     };
 
     Ok(())
@@ -35,12 +34,13 @@ fn purge_with_fire() {
     // if this function has been called - everything is going bad
 
     // Terminate the parent process.
-    use sysinfo::{System, SystemExt, ProcessExt};
+    use sysinfo::{ProcessExt, System, SystemExt};
     let mut sys = System::new();
     let pid = sysinfo::get_current_pid().unwrap(); // Fails "if platform is unsupported" and this should not fail on Windows
     sys.refresh_process(pid);
     match sys.process(pid) {
-        Some(p) => {  // Obtain a Process struct
+        Some(p) => {
+            // Obtain a Process struct
             if let Some(parentpid) = p.parent() {
                 sys.refresh_process(parentpid);
                 eprintln!("Terminating {:?}", parentpid);
@@ -49,14 +49,14 @@ fn purge_with_fire() {
                 if let Some(parentprocess) = sys.process(parentpid) {
                     parentprocess.kill();
                 }
-
             }
         }
-        None => { panic!("Internal error identifying malicious process"); }
+        None => {
+            panic!("Internal error identifying malicious process");
+        }
     }
 }
 fn process_vssadmin(cmd: &[String]) {
-
     let allowed_commands = ["add", "list"];
     if cmd.len() > 2 && !allowed_commands.contains(&cmd[2].as_str()) {
         purge_with_fire();
@@ -66,9 +66,19 @@ fn process_vssadmin(cmd: &[String]) {
     launch_debug("c:\\windows\\system32\\vssadmin.exe", &cmd[2..]);
 }
 
+fn process_diskshadow(cmd: &[String]) {
+    // wmic has far too many legitimate commands to use an allow list
+    let deny_commands = ["shadowcopy", "break"];
+    if cmd.len() > 2 && deny_commands.contains(&cmd[2].to_lowercase().as_str()) {
+        purge_with_fire();
+        panic!("Failed to terminate");
+    }
+    launch_debug("C:\\WINDOWS\\System32\\Wbem\\wmic.exe", &cmd[2..]);
+}
+
 fn process_wmic(cmd: &[String]) {
     // wmic has far too many legitimate commands to use an allow list
-    let deny_commands = ["shadowcopy", "shadowstorage"];
+    let deny_commands = ["delete", "shadowstorage"];
     if cmd.len() > 2 && deny_commands.contains(&cmd[2].to_lowercase().as_str()) {
         purge_with_fire();
         panic!("Failed to terminate");
@@ -156,16 +166,40 @@ mod tests {
     use super::run_if_safe;
     #[test]
     fn good_commands_run() {
-        let args = vec!["vssshield.exe".to_string(), "vssadmin.exe".to_string(), "list".to_string(), "shadows".to_string()];
+        let args = vec![
+            "vssshield.exe".to_string(),
+            "vssadmin.exe".to_string(),
+            "list".to_string(),
+            "shadows".to_string(),
+        ];
         assert!(run_if_safe(&args).is_ok());
-        let args2 = vec!["vssshield.exe".to_string(), "vssadmin.exe".to_string(), "list".to_string(), "volumes".to_string()];
+        let args2 = vec![
+            "vssshield.exe".to_string(),
+            "vssadmin.exe".to_string(),
+            "list".to_string(),
+            "volumes".to_string(),
+        ];
         assert!(run_if_safe(&args2).is_ok());
+    }
+
+    #[test]
+    fn invalid_call() {
+        let args = vec![
+            "vssshield.exe".to_string(),
+            "notepad.exe".to_string()
+        ];
+        assert!(run_if_safe(&args).is_err());
     }
 
     #[test]
     #[should_panic]
     fn bad_commands_dont() {
-        let args = vec!["vssshield.exe".to_string(), "vssadmin.exe".to_string(), "delete".to_string(), "shadows".to_string()];
+        let args = vec![
+            "vssshield.exe".to_string(),
+            "vssadmin.exe".to_string(),
+            "delete".to_string(),
+            "shadows".to_string(),
+        ];
         run_if_safe(&args).ok();
     }
 }

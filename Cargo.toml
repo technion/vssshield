@@ -7,4 +7,3 @@ edition = "2021"
 
 [dependencies]
 sysinfo = "0.24.6"
-winlog = "0.2.6"
