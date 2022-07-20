@@ -8,14 +8,14 @@ jobs:
 
     steps:
       - name: Checkout Binaries
-        uses: actions/checkout@v3
+        uses: actions/checkout@v2
       - name: Install Rust
         uses: actions-rs/toolchain@v1
         with:
             toolchain: nightly-2022-07-19
       - name: Install Miri
         run: | 
-            rustup +nightly component add miri
+            rustup component add miri
             cargo miri setup
       - name: Test with Miri
         run: cargo miri test
