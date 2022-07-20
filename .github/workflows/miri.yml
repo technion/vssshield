@@ -12,10 +12,10 @@ jobs:
       - name: Install Rust
         uses: actions-rs/toolchain@v1
         with:
-            toolchain: nightly-2022-07-19
+            toolchain: nightly
+            override: true
+            components: miri
       - name: Install Miri
-        run: | 
-            rustup component add miri
-            cargo miri setup
+        run: cargo miri setup
       - name: Test with Miri
         run: cargo miri test
