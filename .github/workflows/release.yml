@@ -1,0 +1,23 @@
+name: Build Release
+on: push
+
+jobs:
+  sign:
+
+    runs-on: windows-2019
+
+    steps:
+      - name: Checkout Binaries
+        uses: actions/checkout@v2
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+            toolchain: stable
+      - name: Build Binaries
+        run: cargo build --release --all-features
+      - name: Upload Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            .\target\release\vssshield.exe

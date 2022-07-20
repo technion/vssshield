@@ -5,8 +5,10 @@ use std::os::windows::process::CommandExt;
 use std::path::Path;
 use std::process::Command;
 
+const VSSSHIELD_VERSION: &str = "v0.1";
+
 fn main() {
-    println!("Loading vssshield");
+    println!("Intercepting with vssshield version {}", VSSSHIELD_VERSION);
     let args: Vec<String> = env::args().collect();
 
     // When used, "vssadmin delete shadows" becomes "\path\vssshield.exe vssadmin delete shadows"
