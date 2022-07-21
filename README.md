@@ -18,4 +18,4 @@ Code is designed to compile against Rust Stable with no clippy errors.
 
 ## Installation
 
-Once a stable release is built, an installer will be written. For now, advise is to create a registry entry to launch the application using IEFO.
+The included Powershell script `Install-vssshield.ps1` will automatically download and register the latest stable version for use.
