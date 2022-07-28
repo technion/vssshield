@@ -1,4 +1,5 @@
 #![allow(clippy::upper_case_acronyms)]
+#![deny(unsafe_op_in_unsafe_fn)]
 
 use std::env;
 use std::os::windows::process::CommandExt;
