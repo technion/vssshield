@@ -6,7 +6,7 @@ use std::os::windows::process::CommandExt;
 use std::path::Path;
 use std::process::Command;
 
-const VSSSHIELD_VERSION: &str = "v0.1";
+const VSSSHIELD_VERSION: &str = "v0.2";
 
 fn main() {
     println!("Intercepting with vssshield version {}", VSSSHIELD_VERSION);
