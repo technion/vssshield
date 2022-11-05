@@ -60,7 +60,7 @@ fn purge_with_fire() {
     }
 }
 fn process_vssadmin(cmd: &[String]) {
-    let allowed_commands = ["add", "list"];
+    let allowed_commands = ["add", "list", "create"];
     if cmd.len() > 2 && !allowed_commands.contains(&cmd[2].as_str()) {
         purge_with_fire();
         panic!("Failed to terminate");
