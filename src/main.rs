@@ -6,7 +6,7 @@ use std::os::windows::process::CommandExt;
 use std::path::Path;
 use std::process::Command;
 
-const VSSSHIELD_VERSION: &str = "v0.2";
+const VSSSHIELD_VERSION: &str = "v0.3";
 
 fn main() {
     println!("Intercepting with vssshield version {}", VSSSHIELD_VERSION);
@@ -35,30 +35,31 @@ fn run_if_safe(args: &[String]) -> Result<(), &str> {
 
 fn purge_with_fire() {
     // if this function has been called - everything is going bad
+    // We accept more unwrap() than usual because the best case for handling errors is ransomware
 
-    // Terminate the parent process.
+    // Terminate the grandparent process.
     use sysinfo::{ProcessExt, System, SystemExt};
     let mut sys = System::new();
     let pid = sysinfo::get_current_pid().unwrap(); // Fails "if platform is unsupported" and this should not fail on Windows
-    sys.refresh_process(pid);
-    match sys.process(pid) {
-        Some(p) => {
-            // Obtain a Process struct
-            if let Some(parentpid) = p.parent() {
-                sys.refresh_process(parentpid);
-                eprintln!("Terminating {:?}", parentpid);
 
+    sys.refresh_processes();
+    if let Some(thisprocess) = sys.process(pid) {
+        let parent = thisprocess.parent().unwrap(); // Unknown how parent() can fail, a user process always has a parent
+        if let Some(parentprocess) = sys.process(parent) {
+            let grandparent = parentprocess.parent().unwrap();
+            if let Some(grandparentprocess) = sys.process(grandparent) {
+                eprintln!("Terminating Grandparent {:?}", grandparentprocess);
+                // Don't actually kill processes during test runs
                 #[cfg(not(test))]
-                if let Some(parentprocess) = sys.process(parentpid) {
-                    parentprocess.kill();
-                }
+                grandparentprocess.kill();
             }
-        }
-        None => {
-            panic!("Internal error identifying malicious process");
+            eprintln!("Terminating parent {:?}", parentprocess);
+            #[cfg(not(test))]
+            parentprocess.kill();
         }
     }
 }
+
 fn process_vssadmin(cmd: &[String]) {
     let allowed_commands = ["add", "list", "create"];
     if cmd.len() > 2 && !allowed_commands.contains(&cmd[2].as_str()) {
@@ -70,7 +71,7 @@ fn process_vssadmin(cmd: &[String]) {
 }
 
 fn process_diskshadow(cmd: &[String]) {
-    // wmic has far too many legitimate commands to use an allow list
+    // diskshadow has far too many legitimate commands to use an allow list
     let deny_commands = ["shadowcopy", "break"];
     if cmd.len() > 2 && deny_commands.contains(&cmd[2].to_lowercase().as_str()) {
         purge_with_fire();
@@ -82,7 +83,7 @@ fn process_diskshadow(cmd: &[String]) {
 fn process_wmic(cmd: &[String]) {
     // wmic has far too many legitimate commands to use an allow list
     let deny_commands = ["delete", "shadowstorage"];
-    if cmd.len() > 2 && deny_commands.contains(&cmd[2].to_lowercase().as_str()) {
+    if cmd.len() > 2 && deny_commands.contains(&cmd[3].to_lowercase().as_str()) {
         purge_with_fire();
         panic!("Failed to terminate");
     }
